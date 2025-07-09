@@ -1,0 +1,122 @@
+[
+  {
+    "match": "youtube.com/watch",
+    "param": "v",
+    "android": "intent://www.youtube.com/watch?v={id}#Intent;package=com.google.android.youtube;scheme=https;end;",
+    "ios": "youtube://www.youtube.com/watch?v={id}"
+  },
+  {
+    "match": "linkedin.com",
+    "param": "",
+    "android": "linkedin://{id}",
+    "ios": "linkedin://{id}"
+  },
+  {
+    "match": "x.com",
+    "param": "status",
+    "android": "twitter://status?id={id}",
+    "ios": "twitter://status?id={id}"
+  },
+  {
+    "match": "facebook.com",
+    "param": "",
+    "android": "fb://facewebmodal/f?href={id}",
+    "ios": "fb://facewebmodal/f?href={id}"
+  },
+  {
+    "match": "instagram.com",
+    "param": "",
+    "android": "intent://instagram.com/{id}#Intent;package=com.instagram.android;scheme=https;end;",
+    "ios": "instagram://user?username={id}"
+  },
+  {
+    "match": "spotify.com/track",
+    "param": "",
+    "android": "spotify:track:{id}",
+    "ios": "spotify:track:{id}"
+  },
+  {
+    "match": "medium.com",
+    "param": "",
+    "android": "medium://{id}",
+    "ios": "medium://{id}"
+  },
+  {
+    "match": "whatsapp.com",
+    "param": "text",
+    "android": "intent://send?text={id}#Intent;package=com.whatsapp;scheme=whatsapp;end;",
+    "ios": "whatsapp://send?text={id}"
+  },
+  {
+    "match": "t.me",
+    "param": "",
+    "android": "tg://resolve?domain={id}",
+    "ios": "tg://resolve?domain={id}"
+  },
+  {
+    "match": "reddit.com",
+    "param": "",
+    "android": "reddit://{id}",
+    "ios": "reddit://{id}"
+  },
+  {
+    "match": "zoom.us/j",
+    "param": "",
+    "android": "zoomus://zoom.us/join?confno={id}",
+    "ios": "zoomus://zoom.us/join?confno={id}"
+  },
+  {
+    "match": "slack.com",
+    "param": "",
+    "android": "slack://{id}",
+    "ios": "slack://{id}"
+  },
+  {
+    "match": "github.com",
+    "param": "",
+    "android": "github://{id}",
+    "ios": "github://{id}"
+  },
+  {
+    "match": "notion.so",
+    "param": "",
+    "android": "notion://{id}",
+    "ios": "notion://{id}"
+  },
+  {
+    "match": "quora.com",
+    "param": "",
+    "android": "quora://{id}",
+    "ios": "quora://{id}"
+  },
+  {
+    "match": "netflix.com/watch",
+    "param": "",
+    "android": "nflx://www.netflix.com/watch/{id}",
+    "ios": "nflx://www.netflix.com/watch/{id}"
+  },
+  {
+    "match": "maps.google.com",
+    "param": "q",
+    "android": "geo:0,0?q={id}",
+    "ios": "comgooglemaps://?q={id}"
+  },
+  {
+    "match": "teams.microsoft.com",
+    "param": "",
+    "android": "msteams://{id}",
+    "ios": "msteams://{id}"
+  },
+  {
+    "match": "mail.google.com",
+    "param": "",
+    "android": "mailto:{id}",
+    "ios": "mailto:{id}"
+  },
+  {
+    "match": "udemy.com/course",
+    "param": "",
+    "android": "udemy://course/{id}",
+    "ios": "udemy://course/{id}"
+  }
+]
