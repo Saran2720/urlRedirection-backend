@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @CrossOrigin
@@ -29,6 +30,17 @@ public class LinkController {
 
     // redis
     private final StringRedisTemplate redisTemplate;
+
+
+    @GetMapping("/ip")
+    public String getPublicIP() {
+        try {
+            String ip = new RestTemplate().getForObject("https://api.ipify.org", String.class);
+            return "🌍 Catalyst Public IP: " + ip;
+        } catch (Exception e) {
+            return "❌ Failed to get public IP";
+        }
+    }
 
     @PostMapping("/shortUrl")
     public ResponseEntity<UrlResponse> shorten(@RequestBody UrlRequest req){
@@ -62,5 +74,4 @@ public class LinkController {
         String summary = redisTemplate.opsForValue().get("dashboard:summary");
         return ResponseEntity.ok(summary);
     }
-
 }

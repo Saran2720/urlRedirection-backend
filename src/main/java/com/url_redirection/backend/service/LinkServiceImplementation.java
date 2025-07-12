@@ -3,8 +3,8 @@ package com.url_redirection.backend.service;
 import com.url_redirection.backend.dto.UrlResponse;
 import com.url_redirection.backend.model.Link;
 import com.url_redirection.backend.repository.LinkRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,79 +15,83 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class LinkServiceImplementation implements LinkService{
+public class LinkServiceImplementation implements LinkService {
 
-    //linkrepo for db connection
-    private LinkRepository linkRepository;
-    @Autowired
-    public LinkServiceImplementation(LinkRepository link){
-        this.linkRepository= link;
-    }
-    // redis connection
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private final LinkRepository linkRepository;
+    private final StringRedisTemplate redisTemplate;
 
     @Value("${app.base-url}")
-    private  String base_url;
+    private String baseUrl;
 
-    //getting shortUrl
+    // Debug Redis connection on app start
+    @PostConstruct
+    public void testRedis() {
+        try {
+            redisTemplate.opsForValue().set("testKey", "connected");
+            System.out.println(" Redis connected successfully");
+        } catch (Exception e) {
+            System.err.println("Redis connection failed:");
+            e.printStackTrace();
+        }
+    }
+
+
+    // Shorten URL
     @Override
-    public UrlResponse shorternUrl(String originalUrl){
-
-        //check if the original url is already exist in cache
-        Set<String> keys = redisTemplate.keys(("*"));
+    public UrlResponse shorternUrl(String originalUrl) {
+        // Check Redis cache
+        Set<String> keys = redisTemplate.keys("*");
         for (String key : keys) {
-            String url = redisTemplate.opsForValue().get(key);
-            if (originalUrl.equals(url)) {
-                 System.out.println("original url present in cache :" + url);
-                return new UrlResponse(base_url + key);
+            String cachedUrl = redisTemplate.opsForValue().get(key);
+            if (originalUrl.equals(cachedUrl)) {
+                System.out.println(" Cache hit: " + key);
+                return new UrlResponse(baseUrl + key);
             }
         }
-        //check if the original url is already exist in db
+
+        // Check PostgreSQL
         Optional<Link> existingLink = linkRepository.findByOriginalUrl(originalUrl);
-        if(existingLink.isPresent()){
+        if (existingLink.isPresent()) {
             String shortCode = existingLink.get().getShortCode();
-            System.out.println("original url present in db :" );
-            return new UrlResponse(base_url + shortCode);
+            System.out.println("✅ DB hit: " + shortCode);
+            return new UrlResponse(baseUrl + shortCode);
         }
 
+        // Generate and store new short URL
         String shortCode = generateShortCode();
         Link link = new Link();
         link.setOriginalUrl(originalUrl);
         link.setShortCode(shortCode);
 
-        // Save to PostgreSQL
         linkRepository.save(link);
+        redisTemplate.opsForValue().set(shortCode, originalUrl);
 
-        //save to redis
-        redisTemplate.opsForValue().set(shortCode,originalUrl);
-//        System.out.println(" Saving to Redis: " + shortCode + " -> " + originalUrl);
-
-        return new UrlResponse(base_url+ shortCode);
+        System.out.println(" New short URL created: " + shortCode + " -> " + originalUrl);
+        return new UrlResponse(baseUrl + shortCode);
     }
 
-    //getting originalUrl using shortCode
+    // Resolve short URL
     @Override
-    public String resolveUrl(String shortCode){
-        //check if the originalUrl is in cache
+    public String resolveUrl(String shortCode) {
         String originalUrl = redisTemplate.opsForValue().get(shortCode);
-        if(originalUrl != null){
-//            System.out.println(" Cache hit for shortCode: " + shortCode);
+        if (originalUrl != null) {
+            System.out.println(" Cache hit: " + shortCode);
+            return originalUrl;
         }
-        //if it is null it means it is not present in cache so check in db
-        if(originalUrl==null){
-            Optional<Link> link=linkRepository.findById(shortCode);
-            if(link.isPresent()){
-                originalUrl = link.get().getOriginalUrl();
-                redisTemplate.opsForValue().set(shortCode, originalUrl);
-            }else{
-                return null;
-            }
+
+        Optional<Link> link = linkRepository.findById(shortCode);
+        if (link.isPresent()) {
+            originalUrl = link.get().getOriginalUrl();
+            redisTemplate.opsForValue().set(shortCode, originalUrl);
+            System.out.println("DB hit: " + shortCode);
+            return originalUrl;
         }
-        return originalUrl;
+
+        System.out.println(" Short code not found: " + shortCode);
+        return null;
     }
 
-    private String generateShortCode(){
-        return UUID.randomUUID().toString().substring(0,6);
+    private String generateShortCode() {
+        return UUID.randomUUID().toString().substring(0, 6);
     }
 }
