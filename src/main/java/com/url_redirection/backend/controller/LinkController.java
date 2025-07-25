@@ -32,15 +32,15 @@ public class LinkController {
     private final StringRedisTemplate redisTemplate;
 
 
-    @GetMapping("/ip")
-    public String getPublicIP() {
-        try {
-            String ip = new RestTemplate().getForObject("https://api.ipify.org", String.class);
-            return "🌍 Catalyst Public IP: " + ip;
-        } catch (Exception e) {
-            return "❌ Failed to get public IP";
-        }
-    }
+//    @GetMapping("/ip")
+//    public String getPublicIP() {
+//        try {
+//            String ip = new RestTemplate().getForObject("https://api.ipify.org", String.class);
+//            return "🌍 Catalyst Public IP: " + ip;
+//        } catch (Exception e) {
+//            return "❌ Failed to get public IP";
+//        }
+//    }
 
     @PostMapping("/shortUrl")
     public ResponseEntity<UrlResponse> shorten(@RequestBody UrlRequest req){
