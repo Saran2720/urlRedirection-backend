@@ -1,11 +1,19 @@
-FROM eclipse-temurin:17-jre-alpine
-
-
+# Build the JAR using Maven
+FROM maven:3.4.9-eclipse-temurin-17 AS builder
 # Set the working directory
 WORKDIR /app
 
-# Copy the JAR file into the container
-COPY target/url-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+# Step 2: Create runtime image using smaller JRE base
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/target/url-backend-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the port the app runs on
 EXPOSE 8080
