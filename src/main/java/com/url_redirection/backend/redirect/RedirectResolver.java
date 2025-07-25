@@ -18,8 +18,14 @@ public class RedirectResolver {
 
     public String resolvedRedirectUrl(String originalUrl, HttpServletRequest req){
         String userAgent= req.getHeader("User-Agent");
-        boolean isAndroid = userAgent!=null && userAgent.toLowerCase().contains("android");
-        boolean isIos =userAgent!=null && (userAgent.contains("iPhone") || userAgent.contains("iPad"));
+        if(userAgent==null){
+            userAgent="";
+        }
+        boolean isAndroid =  userAgent.toLowerCase().contains("android");
+        boolean isIos = userAgent.contains("iPhone") || userAgent.contains("iPad");
+
+        //printing user-agent
+        System.out.println("User-Agent Header: " + userAgent);
 
         PlatformRedirectRule rule = mappingService.getRuleForUrl(originalUrl);
         if(rule==null) return null;
