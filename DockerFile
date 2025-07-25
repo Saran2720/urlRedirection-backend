@@ -1,23 +1,27 @@
-# Build the JAR using Maven
+# Step 1: Build the JAR using Maven
 FROM maven:3.9.4-eclipse-temurin-17 AS builder
 
-# Set the working directory
 WORKDIR /app
 
+# Copy pom.xml and download dependencies (for caching)
 COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copy source code
 COPY src ./src
 
+# Build the JAR (skip tests)
 RUN mvn clean package -DskipTests
 
-# Step 2: Create runtime image using smaller JRE base
+# Step 2: Run the JAR in a lightweight JRE image
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/target/url-backend-0.0.1-SNAPSHOT.jar app.jar
+# Copy the generated JAR from the builder stage
+COPY --from=builder /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the port the app runs on
 EXPOSE 8080
 
-# Run the application
+# Run the app
 CMD ["java", "-jar", "app.jar"]
