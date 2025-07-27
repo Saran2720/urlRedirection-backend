@@ -1,6 +1,8 @@
 package com.url_redirection.backend.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.url_redirection.backend.dto.UrlRequest;
 import com.url_redirection.backend.dto.UrlResponse;
 import com.url_redirection.backend.redirect.RedirectResolver;
@@ -14,8 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = "*")
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class LinkController {
@@ -32,15 +36,6 @@ public class LinkController {
     private final StringRedisTemplate redisTemplate;
 
 
-//    @GetMapping("/ip")
-//    public String getPublicIP() {
-//        try {
-//            String ip = new RestTemplate().getForObject("https://api.ipify.org", String.class);
-//            return "🌍 Catalyst Public IP: " + ip;
-//        } catch (Exception e) {
-//            return "❌ Failed to get public IP";
-//        }
-//    }
 
     @PostMapping("/shortUrl")
     public ResponseEntity<UrlResponse> shorten(@RequestBody UrlRequest req){
@@ -61,8 +56,9 @@ public class LinkController {
         // Use redirectResolver to determine the final URL based on platform (mobile/desktop)
         String redirectUrl = redirectResolver.resolvedRedirectUrl(originalUrl,request);
 //        System.out.println("Final redirect URL: " + redirectUrl);
-
-
+        if (redirectUrl == null || redirectUrl.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Redirect URL could not be determined");
+        }
         // Perform the actual HTTP redirect (302 Found)
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(java.net.URI.create(redirectUrl))
@@ -70,8 +66,20 @@ public class LinkController {
     }
 
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<?> getDashboardSummary(){
+    public ResponseEntity<?> getDashboardSummary() {
         String summary = redisTemplate.opsForValue().get("dashboard:summary");
-        return ResponseEntity.ok(summary);
+
+        if (summary == null || summary.isEmpty()) {
+            return ResponseEntity.noContent().build(); // returns 204 No Content
+        }
+
+        try {
+            // convert JSON string back to Map and return it as JSON
+            Map<String, Object> summaryMap = new ObjectMapper().readValue(summary, Map.class);
+            return ResponseEntity.ok(summaryMap);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(500).body("Failed to parse summary data");
+        }
     }
+
 }

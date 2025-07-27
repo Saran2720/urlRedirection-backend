@@ -22,6 +22,7 @@ public class AnalyticsService {
 
     @Scheduled(fixedRate = 600000) // every 10 mis
     public void aggregateAnalytics(){
+        // System.out.println("getting analytics");
         List<UrlAccessLog> logs= accessLogRepository.findAll();
         Map<String,Integer> platFormCountMap = new HashMap<>();
         for(UrlAccessLog log:logs){
